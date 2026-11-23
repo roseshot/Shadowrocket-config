@@ -1,0 +1,55 @@
+name: Sync and audit domain registrations
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: domain-audit-main
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.15'
+          cache: pip
+          cache-dependency-path: scripts/requirements-domain-audit.txt
+      - name: Upgrade pip to latest available stable version
+        run: python -m pip install --upgrade 'pip>=26.3'
+      - name: Upgrade registration lookup packages to latest available versions
+        run: |
+          python -m pip install --upgrade --upgrade-strategy eager -r scripts/requirements-domain-audit.txt
+          python -m pip check
+          python -m pip --version
+      - name: Sync upstream, validate registrations and persist cache
+        env:
+          PYTHONUNBUFFERED: '1'
+        run: |
+          python scripts/sync_and_audit_domains.py --max-checks 2000 --workers 4 --timeout 12
+      - name: Check Shadowrocket configuration format
+        run: python scripts/check_conf_format.py shadowrocket.conf
+      - name: Check generated file diff
+        run: git diff --check -- shadowrocket.conf data/domain-expiry-cache.json logs/changes.log
+      - name: Commit and push verified changes to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shadowrocket.conf data/domain-expiry-cache.json logs/changes.log
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: sync upstream and audit domain registration expirations"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit."
+          fi

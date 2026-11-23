@@ -1,0 +1,25 @@
+# Python local files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+
+# Local secrets, credentials and certificates
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Do not ignore shadowrocket.conf, data/domain-expiry-cache.json or logs/
+# These are intentionally versioned by the audit workflow.
