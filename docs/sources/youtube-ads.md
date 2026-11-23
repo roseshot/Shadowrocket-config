@@ -35,4 +35,4 @@ The wildcard entry uses a `DOMAIN-WILDCARD` rule. The other entries use `DOMAIN-
 
 Do not block all of `youtube.com`, `googlevideo.com`, `youtubei.googleapis.com`, or `ytimg.com`: normal video playback shares those services. Google Ads administration and unrelated sites can also be affected by broad advertising-host blocks.
 
-The separate [native jq response rewrite](../youtube-body-rewrite.md) handles selected YouTube JSON advertising structures after HTTPS interception. It does not handle protobuf, certificate-pinned traffic, or every video ad format. Verify behavior on an actual device.
+DNS-level host blocking does not reliably remove advertisements embedded in YouTube video streams. Verify behavior on an actual device.

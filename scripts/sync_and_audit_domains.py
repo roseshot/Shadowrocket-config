@@ -576,7 +576,7 @@ def validate_cache_records(records: AuditRecords) -> None:
 def validate_sync_result(before: str, after: str, records: AuditRecords) -> None:
     """Reject malformed output or unapproved edits before writing generated files."""
     validate_cache_records(records)
-    sections = ("[General]", "[Rule]", "[Host]", "[Body Rewrite]", "[MITM]")
+    sections = ("[General]", "[Rule]", "[Host]", "[MITM]")
     for config in (before, after):
         boundaries = [f"{section}\n" for section in sections]
         if (any(config.count(boundary) != 1 for boundary in boundaries)

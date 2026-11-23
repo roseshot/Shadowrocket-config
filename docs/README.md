@@ -1,11 +1,10 @@
 # Documentation
 
-This directory describes the **current** configuration. The root [`shadowrocket.conf`](../shadowrocket.conf) is authoritative for active routing and response-rewrite rules.
+This directory describes the **current** configuration. The root [`shadowrocket.conf`](../shadowrocket.conf) is authoritative for active routing rules and network settings.
 
 ## Operations
 
 - [Domain synchronization and registration audit](domain-audit.md) — scheduled workflow, cache, safeguards, and local commands.
-- [YouTube response rewriting](youtube-body-rewrite.md) — match scope, JSON filtering, verification, and troubleshooting.
 
 ## Rule-source evidence
 

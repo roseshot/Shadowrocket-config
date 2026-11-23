@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "shadowrocket.conf"
-SECTIONS = ("[General]", "[Rule]", "[Host]", "[Body Rewrite]", "[MITM]")
+SECTIONS = ("[General]", "[Rule]", "[Host]", "[MITM]")
 RULE_TYPES = frozenset({
     "DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-WILDCARD", "DOMAIN-SET",
     "DOMAIN-KEYWORD", "DST-PORT", "IP-CIDR", "IP-CIDR6",
@@ -21,7 +21,6 @@ RULE_TYPES = frozenset({
 })
 ASSIGNMENT = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]*\s*=\s*\S.*$")
 DOMAIN_VALUE = re.compile(r"^[a-zA-Z0-9*_.-]+$")
-REWRITE = re.compile(r"^http-(?:request|response)(?:-[a-z0-9-]+)?\s+\S+\s+.+$")
 MARKERS = ("# ── P6b:", "# ── P7:")
 
 
@@ -109,9 +108,6 @@ def validate_profile(config: str) -> tuple[int, list[str]]:
         elif section in {"[General]", "[Host]", "[MITM]"}:
             if not ASSIGNMENT.fullmatch(line):
                 errors.append(f"line {line_number}: malformed assignment in {section}")
-        elif section == "[Body Rewrite]":
-            if not REWRITE.fullmatch(line):
-                errors.append(f"line {line_number}: malformed rewrite directive")
 
     if found != list(SECTIONS):
         errors.append(f"expected sections in order: {', '.join(SECTIONS)}")
