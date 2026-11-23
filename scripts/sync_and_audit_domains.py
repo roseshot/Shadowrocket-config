@@ -125,12 +125,81 @@ def compact_configuration(config: str) -> str:
     return "\n".join(kept) + "\n"
 
 
+def order_rules_by_policy(config: str) -> str:
+    """Keep routing groups in REJECT-DROP, REJECT, PROXY, DIRECT, FINAL order.
+
+    Preserve the relative order within each group and both P6b import
+    boundaries. A standalone P7 marker is allowed for base validation.
+    """
+    prefix, rest = config.split("[Rule]\n", 1)
+    rule_block, suffix = rest.split("[Host]\n", 1)
+    buckets: dict[str, list[str]] = {
+        "REJECT-DROP": [], "REJECT": [], "PROXY": [], "FINAL": [],
+    }
+    direct_groups: dict[str, list[str]] = {
+        "before": [], "imported": [], "after": [],
+    }
+    stage = "before"
+    start_marker = None
+    end_marker = None
+
+    for line in rule_block.splitlines():
+        if line.startswith(START):
+            if start_marker is not None or end_marker is not None:
+                raise ValueError("Repeated or misplaced P6b boundary")
+            start_marker = line
+            stage = "imported"
+            continue
+        if line.startswith(END):
+            if end_marker is not None:
+                raise ValueError("Repeated P7 boundary")
+            end_marker = line
+            stage = "after"
+            continue
+        if not line or line.startswith(("#", ";")):
+            continue
+        fields = line.split(",")
+        if fields[0] == "FINAL":
+            if len(fields) != 2:
+                raise ValueError("Malformed FINAL rule")
+            buckets["FINAL"].append(line)
+            continue
+        if len(fields) < 3:
+            raise ValueError(f"Malformed routing rule: {line[:100]}")
+        action = fields[2].strip()
+        if action == "DIRECT":
+            direct_groups[stage].append(line)
+        elif action in ("REJECT-DROP", "REJECT", "PROXY"):
+            if stage == "imported":
+                raise ValueError("Non-DIRECT rule inside imported P6b block")
+            buckets[action].append(line)
+        else:
+            raise ValueError(f"Unexpected rule policy: {action}")
+
+    if start_marker is not None and end_marker is None:
+        raise ValueError("Missing P7 boundary")
+    if len(buckets["FINAL"]) != 1:
+        raise ValueError("Expected exactly one FINAL rule")
+    result = [
+        *buckets["REJECT-DROP"], *buckets["REJECT"], *buckets["PROXY"],
+        *direct_groups["before"],
+    ]
+    if start_marker is not None:
+        result.append(start_marker)
+    result.extend(direct_groups["imported"])
+    if end_marker is not None:
+        result.append(end_marker)
+    result.extend(direct_groups["after"])
+    result.extend(buckets["FINAL"])
+    return prefix + "[Rule]\n" + "\n".join(result) + "\n[Host]\n" + suffix
+
+
 def explicit_actions(config_without_import: str) -> tuple[DomainRules, DomainRules]:
     protected: DomainRules = []
     direct: DomainRules = []
     for line in config_without_import.splitlines():
         match [field.strip() for field in line.split(",")]:
-            case ["DOMAIN" | "DOMAIN-SUFFIX" as kind, domain, "PROXY" | "REJECT-DROP", *_]:
+            case ["DOMAIN" | "DOMAIN-SUFFIX" as kind, domain, "PROXY" | "REJECT" | "REJECT-DROP", *_]:
                 protected.append((kind, domain))
             case ["DOMAIN" | "DOMAIN-SUFFIX" as kind, domain, "DIRECT", *_]:
                 direct.append((kind, domain))
@@ -589,10 +658,14 @@ def validate_sync_result(before: str, after: str, records: AuditRecords) -> None
     _, _, before_base = base_configuration(before)
     _, _, after_base = base_configuration(after)
     expected_base, _ = remove_invalid(before_base, records)
-    if compact_configuration(after_base) != compact_configuration(expected_base):
+    if compact_configuration(after_base) != order_rules_by_policy(
+        compact_configuration(expected_base)
+    ):
         raise ValueError("Unexpected changes outside the imported P6b section")
     if after != compact_configuration(after):
         raise ValueError("Configuration must contain only directives and import markers")
+    if after != order_rules_by_policy(after):
+        raise ValueError("Rules must follow REJECT-DROP, REJECT, PROXY, DIRECT, FINAL order")
 
     # The generated block contains only sorted, unique DIRECT domain suffixes.
     # Its size is intentionally not fixed: upstream updates and audit removals
@@ -694,7 +767,7 @@ def main() -> None:
                     records[root] = update_record(records.get(root), observation, today)
 
     final, removed = remove_invalid(config, records)
-    final = compact_configuration(final)
+    final = order_rules_by_policy(compact_configuration(final))
     validate_sync_result(original_config, final, records)
     if final != original_config:
         CONFIG.write_text(final, encoding="utf-8")

@@ -11,7 +11,7 @@ A single-file Shadowrocket routing configuration. The importable profile is [`sh
 3. Review the routing, DNS, and TLS interception settings before enabling them. Install and explicitly trust the local CA only if you intend to use HTTPS inspection.
 4. Verify routing and DNS behavior with Shadowrocket connection logs and device-side tests.
 
-The profile contains static `DIRECT`, `PROXY`, and `REJECT-DROP` rules, a generated domain-acceleration section, and HTTPS inspection exclusions. It references HaGeZi Multi LIGHT and Encrypted DNS Only as its runtime external rule lists.
+The profile contains static `DIRECT`, `PROXY`, and `REJECT-DROP` rules, a generated domain-acceleration section, and HTTPS inspection exclusions. Routing policies are strictly grouped as `REJECT-DROP` → `REJECT` → `PROXY` → `DIRECT` → `FINAL` (last). Earlier rules win: blocked or proxied suffixes take precedence over later `DIRECT` exceptions. It references HaGeZi Multi LIGHT and Encrypted DNS Only as its runtime external rule lists.
 
 **Limitations:** The profile is large (more than 100,000 static rules); actual device support and performance must be tested. Wide domain and IP rules can block legitimate services. `DIRECT` exposes the device's network address to the destination. TLS inspection can break apps using certificate pinning.
 

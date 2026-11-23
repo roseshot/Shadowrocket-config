@@ -22,6 +22,7 @@ RULE_TYPES = frozenset({
 ASSIGNMENT = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]*\s*=\s*\S.*$")
 DOMAIN_VALUE = re.compile(r"^[a-zA-Z0-9*_.-]+$")
 MARKERS = ("# ── P6b:", "# ── P7:")
+POLICY_ORDER = {"REJECT-DROP": 0, "REJECT": 1, "PROXY": 2, "DIRECT": 3}
 
 
 def validate_rule(line: str) -> str | None:
@@ -73,6 +74,7 @@ def validate_profile(config: str) -> tuple[int, list[str]]:
     rule_count = 0
     final_rules = 0
     last_rule = ""
+    last_priority = -1
     marker_sections: dict[str, list[str | None]] = {key: [] for key in MARKERS}
     marker_lines: dict[str, list[int]] = {key: [] for key in MARKERS}
 
@@ -103,8 +105,21 @@ def validate_profile(config: str) -> tuple[int, list[str]]:
             error = validate_rule(line)
             if error:
                 errors.append(f"line {line_number}: {error}")
-            if line.startswith("FINAL,"):
+            fields = [field.strip() for field in line.split(",")]
+            if fields[0] == "FINAL":
                 final_rules += 1
+                priority = 4
+            else:
+                priority = POLICY_ORDER.get(fields[2]) if len(fields) >= 3 else None
+            if priority is None:
+                errors.append(f"line {line_number}: unsupported rule policy")
+            elif priority < last_priority:
+                errors.append(
+                    f"line {line_number}: wrong policy priority; "
+                    "required REJECT-DROP, REJECT, PROXY, DIRECT, FINAL"
+                )
+            else:
+                last_priority = priority
         elif section in {"[General]", "[Host]", "[MITM]"}:
             if not ASSIGNMENT.fullmatch(line):
                 errors.append(f"line {line_number}: malformed assignment in {section}")

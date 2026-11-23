@@ -8,7 +8,7 @@ The [scheduled workflow](../.github/workflows/domain-audit.yml) runs daily at **
 2. Inventories **only** `DOMAIN`, `DOMAIN-SUFFIX`, and `DOMAIN-WILDCARD` rules with action `DIRECT` in the `[Rule]` section. All registrable subdomains share one Public Suffix List registration root.
 3. Checks registration status with the IANA RDAP bootstrap and a WHOIS fallback. Explicit `PROXY` and `REJECT-DROP` rules are never inspected or deleted for registration expiry.
 4. Validates the generated configuration and cache in memory before writing files: section order, immutable non-import content (apart from confirmed-invalid `DIRECT` rules), P6b format and ordering, and cache schema.
-5. Saves updated registration observations and writes a single per-run change log containing both `ADD` and `DEL` entries. The workflow validates `shadowrocket.conf` formatting, checks the generated diff, and commits changed files only when those checks succeed.
+5. Orders the rule groups as `REJECT-DROP`, `REJECT`, `PROXY`, `DIRECT`, then `FINAL` while preserving order within each policy and the imported P6b boundaries. Saves updated registration observations and writes a single per-run change log containing both `ADD` and `DEL` entries. The workflow validates `shadowrocket.conf` formatting, checks the generated diff, and commits changed files only when those checks succeed.
 
 ## Scheduling and deletion safeguards
 
