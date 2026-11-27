@@ -1,0 +1,50 @@
+name: Review mainland company domains
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/mainland-company-domains.json'
+      - 'scripts/import_verified_mainland_domains.py'
+      - '.github/workflows/mainland-company-domains.yml'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Apply reviewed hosts to shadowrocket.conf
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: domain-audit-main
+  cancel-in-progress: false
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.15'
+      - name: Validate evidence registry and preview rule changes
+        run: python scripts/import_verified_mainland_domains.py
+      - name: Apply reviewed domains only when explicitly requested
+        if: github.event_name == 'workflow_dispatch' && inputs.apply
+        run: |
+          python scripts/import_verified_mainland_domains.py --write
+          python scripts/check_conf_format.py shadowrocket.conf
+          git diff --check -- shadowrocket.conf
+          if ! git diff --quiet -- shadowrocket.conf; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add shadowrocket.conf
+            git commit -m "feat: add reviewed mainland enterprise hosts as DIRECT"
+            git push origin HEAD:main
+          fi
