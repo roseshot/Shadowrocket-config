@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "isc-2025",
+      "url": "https://www.isc.org.cn/article/27460980540829696.html",
+      "published": "2025-12-29",
+      "listing_reference": "https://www.cnpp.cn/focus/3548893.html"
+    },
+    {
+      "id": "acfic-2026",
+      "url": "https://www.acfic.org.cn/ztzlhz/500q2026/hyxw_500q2026/202609/t20260923_331528.html",
+      "published": "2026-09-22"
+    }
+  ],
+  "companies": [
+    {
+      "name": "上海寻梦信息技术有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "北京抖音信息服务有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "蚂蚁科技集团股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "淘天有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "深圳市腾讯计算机系统有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "美团公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "百度公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "快手科技有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "滴滴全球股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "携程集团",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "网易公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "京东集团股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "腾讯音乐娱乐集团",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "小米集团",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "贝壳控股有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "哔哩哔哩股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "三七互娱网络科技集团股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "三六零安全科技股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "上海得物信息集团有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    },
+    {
+      "name": "芒果超媒股份有限公司",
+      "source": "isc-2025",
+      "status": "pending"
+    }
+  ],
+  "approved_domains": []
+}
